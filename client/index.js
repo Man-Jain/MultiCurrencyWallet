@@ -18,10 +18,13 @@ const __webpack_public_path__ = `${config.publicPath}images/` // It makes webpac
 /* eslint-disable no-lone-blocks */
 {
   window.location.protocol === 'http:' && window.location.hostname !== 'localhost'
-    ? (ReactDOM.render(
-      <ErrorPageNoSSL />,
-      document.getElementById('root')
-    ))
+    ? (migrate().finally(() => setTimeout(() => {
+      ReactDOM.render(
+        <Root history={history} store={store} routes={routes} />,
+        document.getElementById('root')
+      )
+    }, 1000))
+    )
     : (migrate().finally(() => setTimeout(() => {
       ReactDOM.render(
         <Root history={history} store={store} routes={routes} />,
