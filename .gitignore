@@ -6,11 +6,9 @@ lib
 *-lock.*
 
 node_modules
-build-*
 
 app.*.css
 app.*.js
 
 .idea
 
-mainnet.build/

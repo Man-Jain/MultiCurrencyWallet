@@ -24,11 +24,13 @@ import Cupture
   cupture2,
 } from './texts'
 
+import { web3 } from '../../../helpers/web3'
 
 const isWidgetBuild = config && config.isWidget
 
 @connect(({ currencies: { items: currencies } }) => ({ currencies }))
 @CSSModules(styles, { allowMultiple: true })
+
 export default class CreateWallet extends Component {
   defaultStartPack = [
     { name: "BTC", capture: "Bitcoin" },
@@ -147,7 +149,7 @@ export default class CreateWallet extends Component {
   }
 
   render() {
-    const { onClick, error } = this.props
+    const { onClick, error, onMetamask } = this.props
     const { curState, startPack, all } = this.state
 
     const coloredIcons = ['btc', 'eth', 'swap', 'usdt', 'eurs']

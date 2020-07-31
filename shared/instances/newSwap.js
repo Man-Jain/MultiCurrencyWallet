@@ -1,6 +1,6 @@
 /* eslint-disable import/no-mutable-exports,max-len */
 import 'abortcontroller-polyfill/dist/abortcontroller-polyfill-only'
-import web3 from 'helpers/web3'
+import {web3} from 'helpers/web3'
 import * as bitcoin from 'bitcoinjs-lib'
 
 import abi from 'human-standard-token-abi'

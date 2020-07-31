@@ -449,6 +449,7 @@ export default class Header extends Component {
     const logoRenderer =
       window.location.hostname === "localhost" ||
         window.location.hostname === "swaponline.github.io" ||
+        window.location.hostname === "demo.demodyfi.com"
         window.location.hostname === "swaponline.io" ? (
           <>
             <LogoTooltip withLink isColored isExchange={isWalletPage} />

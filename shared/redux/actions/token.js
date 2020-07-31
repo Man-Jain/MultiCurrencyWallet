@@ -2,7 +2,7 @@ import ERC20_ABI from 'human-standard-token-abi'
 import helpers, { apiLooper, constants, cacheStorageGet, cacheStorageSet } from 'helpers'
 import { getState } from 'redux/core'
 import actions from 'redux/actions'
-import web3 from 'helpers/web3'
+import {web3, getWeb3} from 'helpers/web3'
 import reducers from 'redux/core/reducers'
 import config from 'helpers/externalConfig'
 import { BigNumber } from 'bignumber.js'
@@ -49,26 +49,16 @@ const GetCustromERC20 = () => {
 
 const login = (privateKey, contractAddress, nameContract, decimals, fullName) => {
   let data
-  if (privateKey) {
-    data = web3.eth.accounts.privateKeyToAccount(privateKey)
-  } else {
-    console.info('Created account ETH Token ...')
-    data = web3.eth.accounts.create()
-    web3.eth.accounts.wallet.add(data)
-  }
 
-  web3.eth.accounts.wallet.add(data.privateKey)
-  console.info('Logged in with ETH Token', data)
+  data = {
+    address: web3.currentProvider.selectedAddress
+  }
 
   setupContract(data.address, contractAddress, nameContract, decimals, fullName)
 }
 
 
 const setupContract = (ethAddress, contractAddress, nameContract, decimals, fullName) => {
-  if (!web3.eth.accounts.wallet[ethAddress]) {
-    throw new Error('web3 does not have given address')
-  }
-
   const isSweeped = actions.eth.isSweeped()
 
   const data = {

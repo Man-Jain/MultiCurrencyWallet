@@ -1,7 +1,7 @@
 import helpers, { apiLooper, constants, api, cacheStorageGet, cacheStorageSet } from 'helpers'
 import { getState } from 'redux/core'
 import actions from 'redux/actions'
-import web3 from 'helpers/web3'
+import {web3, getWeb3} from 'helpers/web3'
 import reducers from 'redux/core/reducers'
 import config from 'helpers/externalConfig'
 import referral from './referral'
@@ -111,91 +111,117 @@ const getWalletByWords = (mnemonic, walletNumber = 0, path) => {
 }
 
 
-const login = (privateKey, mnemonic, mnemonicKeys) => {
-  let sweepToMnemonicReady = false
-
-  if (privateKey
-    && mnemonic
-    && mnemonicKeys
-    && mnemonicKeys.eth === privateKey
-  ) sweepToMnemonicReady = true
-
-  if (!privateKey && mnemonic) sweepToMnemonicReady = true
-
-  let data
-
-  if (privateKey) {
-    data = web3.eth.accounts.privateKeyToAccount(privateKey)
-  }
-  else {
-    console.info('Created account Ethereum ...')
-    // data = web3.eth.accounts.create()
-    if (!mnemonic) mnemonic = bip39.generateMnemonic()
-    const accData = getWalletByWords(mnemonic)
-    console.log('Eth. Generated walled from random 12 words')
-    console.log(accData)
-    privateKey = accData.privateKey
-    data = web3.eth.accounts.privateKeyToAccount(privateKey)
-    localStorage.setItem(constants.privateKeyNames.ethMnemonic, privateKey)
-  }
-
-  localStorage.setItem(constants.privateKeyNames.eth, data.privateKey)
-
-  web3.eth.accounts.wallet.add(data.privateKey)
-  data.isMnemonic = sweepToMnemonicReady
-
-  reducers.user.setAuthData({ name: 'ethData', data })
-
-  window.getEthAddress = () => data.address
-  referral.newReferral(data.address)
-
-  console.info('Logged in with Ethereum', data)
-
-  if (!sweepToMnemonicReady) {
-    // Auth with our mnemonic account
-    if (mnemonic === `-`) {
-      console.error('Sweep. Cant auth. Need new mnemonic or enter own for re-login')
-      return
+const login = async (privateKey, mnemonic, mnemonicKeys) => {
+  console.log('Loggin in with web3 now')
+  if (!web3) {
+    await getWeb3();
+    const data = {
+      currency: 'ETH',
+      fullName: 'Ethereum',
+      balance: 0,
+      isBalanceFetched: false,
+      balanceError: null,
+      infoAboutCurrency: null,
+      address: web3.currentProvider.selectedAddress,
     }
-
-    if (!mnemonicKeys
-      || !mnemonicKeys.eth
-    ) {
-      console.error('Sweep. Cant auth. Login key undefined')
-      return
-    }
-
-    const mnemonicData = web3.eth.accounts.privateKeyToAccount(mnemonicKeys.eth)
-    web3.eth.accounts.wallet.add(mnemonicKeys.eth)
-    mnemonicData.isMnemonic = sweepToMnemonicReady
-
-    console.info('Logged in with Ethereum Mnemonic', mnemonicData)
-    reducers.user.addWallet({
-      name: 'ethMnemonicData',
-      data: {
-        currency: 'ETH',
-        fullName: 'Ethereum (New)',
-        balance: 0,
-        isBalanceFetched: false,
-        balanceError: null,
-        infoAboutCurrency: null,
-        ...mnemonicData,
-      }
-    })
+    reducers.user.setAuthData({ name: 'ethData', data})
     new Promise(async (resolve) => {
-      const balance = await fetchBalance(mnemonicData.address)
+      const balance = await fetchBalance(web3.currentProvider.selectedAddress)
       reducers.user.setAuthData({
         name: 'ethMnemonicData',
         data: {
           balance,
-          isBalanceFetched: true,
+          isBalanceFetched: false,
         },
       })
       resolve(true)
     })
   }
+  // let sweepToMnemonicReady = false
 
-  return data.privateKey
+  // if (privateKey
+  //   && mnemonic
+  //   && mnemonicKeys
+  //   && mnemonicKeys.eth === privateKey
+  // ) sweepToMnemonicReady = true
+
+  // if (!privateKey && mnemonic) sweepToMnemonicReady = true
+
+  // let data
+
+  // if (privateKey) {
+  //   data = web3.eth.accounts.privateKeyToAccount(privateKey)
+  // }
+  // else {
+  //   console.info('Created account Ethereum ...')
+  //   // data = web3.eth.accounts.create()
+  //   if (!mnemonic) mnemonic = bip39.generateMnemonic()
+  //   const accData = getWalletByWords(mnemonic)
+  //   console.log('Eth. Generated walled from random 12 words')
+  //   console.log(accData)
+  //   privateKey = accData.privateKey
+  //   data = web3.eth.accounts.privateKeyToAccount(privateKey)
+  //   localStorage.setItem(constants.privateKeyNames.ethMnemonic, privateKey)
+  // }
+
+  // localStorage.setItem(constants.privateKeyNames.eth, data.privateKey)
+
+  // web3.eth.accounts.wallet.add(data.privateKey)
+  // data.isMnemonic = sweepToMnemonicReady
+
+  // reducers.user.setAuthData({ name: 'ethData', data })
+
+  // window.getEthAddress = () => data.address
+  // referral.newReferral(data.address)
+
+  // console.info('Logged in with Ethereum', data)
+
+  // if (!sweepToMnemonicReady) {
+  //   // Auth with our mnemonic account
+  //   if (mnemonic === `-`) {
+  //     console.error('Sweep. Cant auth. Need new mnemonic or enter own for re-login')
+  //     return
+  //   }
+
+  //   if (!mnemonicKeys
+  //     || !mnemonicKeys.eth
+  //   ) {
+  //     console.error('Sweep. Cant auth. Login key undefined')
+  //     return
+  //   }
+
+  //   const mnemonicData = web3.eth.accounts.privateKeyToAccount(mnemonicKeys.eth)
+  //   console.log('mnemonic data', mnemonicData)
+  //   web3.eth.accounts.wallet.add(mnemonicKeys.eth)
+  //   mnemonicData.isMnemonic = sweepToMnemonicReady
+
+  //   console.info('Logged in with Ethereum Mnemonic', mnemonicData)
+  //   reducers.user.addWallet({
+  //     name: 'ethMnemonicData',
+  //     data: {
+  //       currency: 'ETH',
+  //       fullName: 'Ethereum (New)',
+  //       balance: 0,
+  //       isBalanceFetched: false,
+  //       balanceError: null,
+  //       infoAboutCurrency: null,
+  //       ...mnemonicData,
+  //     }
+  //   })
+  //   new Promise(async (resolve) => {
+  //     const balance = await fetchBalance(web3.currentProvider.selectedAddress)
+  //     reducers.user.setAuthData({
+  //       name: 'ethMnemonicData',
+  //       data: {
+  //         balance,
+  //         isBalanceFetched: false,
+  //       },
+  //     })
+  //     resolve(true)
+  //   })
+  // }
+
+  return web3.currentProvider.selectedAddress
 }
 
 const isETHAddress = (address) => {
@@ -204,8 +230,9 @@ const isETHAddress = (address) => {
 }
 
 const getBalance = () => {
-  const { user: { ethData: { address } } } = getState()
-
+  // const { user: { ethData: { address } } } = getState()
+  const address = web3.currentProvider.selectedAddress
+  console.log('balance address', address)
   const balanceInCache = cacheStorageGet('currencyBalances', `eth_${address}`)
   if (balanceInCache !== false) return balanceInCache
 
@@ -231,10 +258,11 @@ const fetchBalance = (address) =>
       console.log('Web3 doesn\'t work please again later ', e.error)
     })
 
-const getInvoices = (address) => {
-  const { user: { ethData: { userAddress } } } = getState()
+const getInvoices = () => {
+  // const { user: { ethData: { userAddress } } } = getState()
 
-  address = address || userAddress
+  // address = address || userAddress
+  const address = web3.currentProvider.selectedAddress
 
   return actions.invoices.getInvoices({
     currency: 'ETH',
@@ -264,6 +292,7 @@ const getTransaction = (address, ownType) =>
   new Promise((resolve) => {
     const { user: { ethData: { address: userAddress } } } = getState()
     address = address || userAddress
+    console.log('useraddress', address)
 
     if (!typeforce.isCoinAddress['ETH'](address)) {
       resolve([])
@@ -330,22 +359,33 @@ const sendWithAdminFee = async ({ from, to, amount, gasPrice, gasLimit, speed } 
 
   return new Promise(async (resolve, reject) => {
     const params = {
+      from: web3.currentProvider.selectedAddress,
       to: String(to).trim(),
       gasPrice,
       gas: gasLimit,
       value: web3.utils.toWei(String(amount)),
     }
 
-    const result = await web3.eth.accounts.signTransaction(params, privateKey)
-    const receipt = web3.eth.sendSignedTransaction(result.rawTransaction)
-      .on('transactionHash', (hash) => {
-        const txId = `${config.link.etherscan}/tx/${hash}`
-        console.log('tx', txId)
-        actions.loader.show(true, { txId })
-      })
-      .on('error', (err) => {
-        reject(err)
-      })
+    // const result = await web3.eth.accounts.signTransaction(params, privateKey)
+    // const receipt = web3.eth.sendSignedTransaction(result.rawTransaction)
+    //   .on('transactionHash', (hash) => {
+    //     const txId = `${config.link.etherscan}/tx/${hash}`
+    //     console.log('tx', txId)
+    //     actions.loader.show(true, { txId })
+    //   })
+    //   .on('error', (err) => {
+    //     reject(err)
+    //   })
+
+    const receipt = web3.eth.sendTransaction(params)
+    .on('transactionHash', (hash) => {
+      const txId = `${config.link.etherscan}/tx/${hash}`
+      console.log('tx', txId)
+      actions.loader.show(true, { txId })
+    })
+    .on('error', (err) => {
+      reject(err)
+    })
 
     receipt.then(() => {
       resolve(receipt)
@@ -377,6 +417,7 @@ const sendDefault = ({ from, to, amount, gasPrice, gasLimit, speed } = {}) =>
     gasLimit = gasLimit || constants.defaultFeeRates.eth.limit.send
 
     const params = {
+      from: web3.currentProvider.selectedAddress,
       to: String(to).trim(),
       gasPrice,
       gas: gasLimit,
@@ -384,15 +425,24 @@ const sendDefault = ({ from, to, amount, gasPrice, gasLimit, speed } = {}) =>
     }
 
     const result = await web3.eth.accounts.signTransaction(params, privateKey)
-    const receipt = web3.eth.sendSignedTransaction(result.rawTransaction)
-      .on('transactionHash', (hash) => {
-        const txId = `${config.link.etherscan}/tx/${hash}`
-        console.log('tx', txId)
-        actions.loader.show(true, { txId })
-      })
-      .on('error', (err) => {
-        reject(err)
-      })
+    // const receipt = web3.eth.sendSignedTransaction(result.rawTransaction)
+    //   .on('transactionHash', (hash) => {
+    //     const txId = `${config.link.etherscan}/tx/${hash}`
+    //     console.log('tx', txId)
+    //     actions.loader.show(true, { txId })
+    //   })
+    //   .on('error', (err) => {
+    //     reject(err)
+    //   })
+    const receipt = web3.eth.sendTransaction(params)
+    .on('transactionHash', (hash) => {
+      const txId = `${config.link.etherscan}/tx/${hash}`
+      console.log('tx', txId)
+      actions.loader.show(true, { txId })
+    })
+    .on('error', (err) => {
+      reject(err)
+    })
 
     resolve(receipt)
   })

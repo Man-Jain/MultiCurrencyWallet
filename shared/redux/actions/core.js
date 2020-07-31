@@ -361,7 +361,6 @@ const getWallets = () => {
     },
   } = getState()
 
-
   const allData = [
     ... (btcMnemonicData && !btcData.isMnemonic) ? [btcMnemonicData] : [], // Sweep
     ... (ethMnemonicData && !ethData.isMnemonic) ? [ethMnemonicData] : [], // Sweep
