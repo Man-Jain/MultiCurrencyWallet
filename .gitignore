@@ -1,5 +1,3 @@
-lib
-
 .DS_Store
 .eslintcache
 
@@ -7,8 +5,4 @@ lib
 
 node_modules
 
-app.*.css
-app.*.js
-
 .idea
-
